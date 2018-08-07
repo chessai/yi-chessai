@@ -1,7 +1,7 @@
 {
   "url": "https://github.com/yi-editor/yi",
-  "rev": "2fa57e30d6e42f74502824ff3324daf300bf0bb9",
-  "date": "2018-03-02",
-  "sha256": "0kcqpds0a3gz3myn4fwfxby5fnqdl8mraj8nhqsfz0jmk0jl20x7", 
+  "rev": "40c42f7663f9aa531b57e59a0ef17ef8df0bcdaa",
+  "date": "2018-08-07",
+  "sha256": "1a74rzxkcfjfry4bqh0kmb2r9i9r6img9ydp39vfnskjzficpkfx",
   "fetchSubmodules": true
 }

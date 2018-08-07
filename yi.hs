@@ -55,17 +55,3 @@ main = do
   cfg <- execStateT (runConfigM config) defaultConfig
 
   startEditor cfg Nothing
-
-{-
-gitCommitMode :: TokenBasedMode GitCommit.Token
-gitCommitMode = Yi.Modes.gitCommitMode
-  & modePrettifyA .~ const (fillParagraph 72)
-
-fillParagraph :: Int -> BufferM ()
-fillParagraph cols =
-  fillRegion cols =<< regionOfB unitParagraph
-
--- | Fills the text in the region so it fits in some number of colums.
-fillRegion :: Int -> Region -> BufferM ()
-fillRegion cols = modifyRegionB (R.unlines . fillText cols)
--}

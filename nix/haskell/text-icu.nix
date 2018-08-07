@@ -7,7 +7,7 @@ mkDerivation {
   pname = "text-icu";
   version = "0.55.1.0";
   src = fetchgit {
-    url = "https://github.com/bos/text-icu.git";
+    url = "https://github.com/bos/text-icu";
     sha256 = "12gs3rn1yfzmaqxfbaxzp2xy0ai0sqnw9dc3wb61byd8lvpx73kz";
     rev = "5ab84d8106c06fbabb87a0f173faa6049775a148";
   };

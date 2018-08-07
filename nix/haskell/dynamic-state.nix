@@ -3,11 +3,11 @@
 }:
 mkDerivation {
   pname = "dynamic-state";
-  version = "0.3";
+  version = "0.3.1";
   src = fetchgit {
     url = "https://github.com/yi-editor/dynamic-state.git";
-    sha256 = "19dravi3q1a08hv88vxk9n6p3r5wijf6bxkcy0qcyghgv6f791xj";
-    rev = "47aeb4d4d8c7b35278e733afb92e652d9d3ebbbc";
+    sha256 = "0967796j9rls300k7mz155zf4ybk8540na4x4shkqcyc3l7q9s8n";
+    rev = "7ebe5f304d63925980a6e8db1f8badd51afb278b";
   };
   libraryHaskellDepends = [
     base binary bytestring hashable unordered-containers

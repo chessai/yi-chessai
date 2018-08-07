@@ -1,10 +1,11 @@
-{ package ? "yi-chessai" , compiler ? "ghc822" }:
+{ package ? "yi-chessai" , compiler ? "ghc843" }:
 
-let fetchNixpkgs = import ./nix/fetchNixpkgs.nix;
-    nixpkgs = fetchNixpkgs {
-      rev = "eb857611378576f96022867a9fd15a7a841e518c";
-      sha256 = "02ddlyc2i9l96hsm3l2g02vrv7ljl4h5vbnqfq4p2xvm6zb5v0q6";
-      sha256unpacked = "02ddlyc2i9l96hsm3l2g02vrv7ljl4h5vbnqfq4p2xvm6zb5v0q6";
+let _nixpkgs = import <nixpkgs> {};
+    nixpkgs = _nixpkgs.fetchFromGitHub {
+      owner = "NixOS";
+      repo = "nixpkgs";
+      rev = "5c4a404b0d0e5125070dde5c1787210149157e83";
+      sha256 = "0a478l0dxzy5hglavkilxjkh45zfg31q50hgkv1npninc4lpv5f7";
     };
     pkgs = import nixpkgs { config = {}; overlays = []; };
     inherit (pkgs) haskell;
@@ -17,7 +18,8 @@ let fetchNixpkgs = import ./nix/fetchNixpkgs.nix;
           inherit (commit) rev sha256;
       };
 
-      yi-src = fetch-github-json "yi-editor" "yi" ./nix/haskell/yi.json;
+    yi-src = fetch-github-json "yi-editor" "yi" ./nix/haskell/yi.json;
+    
     filterPredicate = p: type:
       let path = baseNameOf p; in !(
            (type == "directory" && path == "dist")
@@ -41,7 +43,17 @@ let fetchNixpkgs = import ./nix/fetchNixpkgs.nix;
             inherit name;
             value = build-from-json name "${yi-src}/${name}";
           };
-          yi-pkgs = doMap yiMapFn [ "yi" "yi-core" "yi-keymap-vim" "yi-language" "yi-frontend-vty" "yi-misc-modes" "yi-mode-haskell" "yi-mode-javascript" ]; 
+          yi-pkgs = doMap yiMapFn
+            [
+              "yi"
+              "yi-core"
+              "yi-keymap-vim"
+              "yi-language"
+              "yi-frontend-vty"
+              "yi-misc-modes"
+              "yi-mode-haskell"
+              "yi-mode-javascript"
+            ]; 
         in  
         yi-pkgs //
         {
@@ -50,14 +62,10 @@ let fetchNixpkgs = import ./nix/fetchNixpkgs.nix;
           
           yi-rope    = cp "yi-rope"; 
           yi-chessai = build "yi-chessai" ./.; 
-          #yi-chessai = cp "yi-chessai"; 
         };
       };
   
 in rec {
-  drv = overrides.${package};
-  yi-chessai =
-    if pkgs.lib.inNixShell
-      then drv.env 
-      else drv;
+  inherit overrides;
+  yi-chessai = overrides.yi-chessai;
 }
