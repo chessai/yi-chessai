@@ -1,7 +1,7 @@
 {
-  "url": "https://github.com/yi-editor/yi",
-  "rev": "40c42f7663f9aa531b57e59a0ef17ef8df0bcdaa",
-  "date": "2018-08-07",
-  "sha256": "1a74rzxkcfjfry4bqh0kmb2r9i9r6img9ydp39vfnskjzficpkfx",
+  "url": "https://github.com/chessai/yi",
+  "rev": "97f7001910a4bd50028edcc47ff4e8ac6936d7ea",
+  "date": "2018-11-21",
+  "sha256": "1482vicarl9rx40c34pdb0j54jqjl9cbf87bhg199lmdr45828pw",
   "fetchSubmodules": true
 }
