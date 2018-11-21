@@ -17,7 +17,7 @@ let fetchNixpkgs = import ./nix/fetchNixpkgs.nix;
           inherit (commit) rev sha256;
       };
 
-    yi-src = fetch-github-json "yi-editor" "yi" ./nix/haskell/yi.json;
+    yi-src = fetch-github-json "chessai" "yi" ./nix/haskell/yi.json;
     
     filterPredicate = p: type:
       let path = baseNameOf p; in !(
