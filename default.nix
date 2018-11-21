@@ -1,11 +1,10 @@
-{ package ? "yi-chessai" , compiler ? "ghc843" }:
+{ package ? "yi-chessai" , compiler ? "ghc862" }:
 
-let _nixpkgs = import <nixpkgs> {};
-    nixpkgs = _nixpkgs.fetchFromGitHub {
-      owner = "NixOS";
-      repo = "nixpkgs";
-      rev = "5c4a404b0d0e5125070dde5c1787210149157e83";
-      sha256 = "0a478l0dxzy5hglavkilxjkh45zfg31q50hgkv1npninc4lpv5f7";
+let fetchNixpkgs = import ./nix/fetchNixpkgs.nix;
+    nixpkgs = fetchNixpkgs {
+      owner = "layer-3-communications";
+      rev   = "1c941f6d3ef5c51db61b1af5590ace047231f7c8";
+      sha256 = "1xgsjy6vai61gyy7ry13wvskc6n29i6d11xncn6ki24j1m76lavb";
     };
     pkgs = import nixpkgs { config = {}; overlays = []; };
     inherit (pkgs) haskell;
@@ -29,7 +28,8 @@ let _nixpkgs = import <nixpkgs> {};
         || pkgs.lib.hasSuffix "~" path
         || pkgs.lib.hasSuffix ".o" path
         || pkgs.lib.hasSuffix ".so" path
-        || pkgs.lib.hasSuffix ".nix" path);
+        || pkgs.lib.hasSuffix ".nix" path
+        || pkgs.lib.hasSuffix ".md" path);
 
     overrides = haskell.packages.${compiler}.override {
       overrides = self: super:
@@ -37,6 +37,7 @@ let _nixpkgs = import <nixpkgs> {};
         let
           cp = file: (self.callPackage (./nix/haskell + "/${file}.nix") {}); 
           build = name: path: self.callCabal2nix name (builtins.filterSource filterPredicate path) {};
+          # build' = name: path: self.callPackage name (builtins.filterSource filterPredicate path) { }; 
           build-from-json = name: str: self.callCabal2nix name str {}; 
           doMap = fn: list: pkgs.lib.listToAttrs (map fn list);
           yiMapFn = name: {
@@ -66,6 +67,16 @@ let _nixpkgs = import <nixpkgs> {};
       };
   
 in rec {
-  inherit overrides;
+  inherit overrides; 
+  yi = overrides.yi;
+  yi-core = overrides.yi-core;
+  yi-keymap-vim = overrides.yi-keymap-vim;
+  yi-language = overrides.yi-frontend-vty;
+  yi-misc-modes = overrides.yi-misc-modes;
+  yi-mode-haskell = overrides.yi-mode-haskell;
+  yi-mode-javascript = overrides.yi-mode-javascript;
+  dynamic-state = overrides.dynamic-state;
+  text-icu = overrides.text-icu;
+  yi-rope = overrides.yi-rope;
   yi-chessai = overrides.yi-chessai;
 }
