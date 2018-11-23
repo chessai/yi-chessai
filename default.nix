@@ -1,4 +1,4 @@
-{ package ? "yi-chessai" , compiler ? "ghc862" }:
+{ package ? "yi-chessai" , compiler ? "ghc844" }:
 
 let fetchNixpkgs = import ./nix/fetchNixpkgs.nix;
     nixpkgs = fetchNixpkgs {
