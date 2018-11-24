@@ -1,5 +1,9 @@
 ------------------------------------------------------------------
 
+{-# OPTIONS_GHC -Wall #-}
+
+------------------------------------------------------------------
+
 {-# LANGUAGE BangPatterns               #-}
 {-# LANGUAGE GADTSyntax                 #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -20,13 +24,12 @@ import Data.Maybe (catMaybes, fromMaybe)
 
 import Yi
   ( Mode(modeName, modeHL, modeGetStrokes)
-  , importStyle, stringStyle, numberStyle, dataConstructorStyle
   )
 import Yi.Mode.Common (fundamentalMode)
 import Yi.Style
   ( Style
   , StyleName
-  , UIStyle(UIStyle)
+  , UIStyle
   , Color(RGB)
   , withFg
   )
