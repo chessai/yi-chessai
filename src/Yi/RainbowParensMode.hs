@@ -1,8 +1,11 @@
 ------------------------------------------------------------------
 
 {-# LANGUAGE BangPatterns               #-}
+{-# LANGUAGE GADTSyntax                 #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
 
 ------------------------------------------------------------------
 
@@ -16,18 +19,25 @@ import Data.Foldable (asum)
 import Data.Maybe (catMaybes, fromMaybe)
 
 import Yi
-  ( StyleName
-  , Mode(modeName, modeHL, modeGetStrokes)
+  ( Mode(modeName, modeHL, modeGetStrokes)
   , importStyle, stringStyle, numberStyle, dataConstructorStyle
   )
 import Yi.Mode.Common (fundamentalMode)
+import Yi.Style
+  ( Style
+  , StyleName
+  , UIStyle(UIStyle)
+  , Color(RGB)
+  , withFg
+  )
 import Yi.Syntax
   ( Point
   , Stroke
   , Span(Span)
   , Highlighter(SynHL)
   , Scanner(scanRun,scanInit)
-  , ExtHL(ExtHL))
+  , ExtHL(ExtHL)
+  )
 
 import Text.Regex.Applicative (RE, psym, many, (=~))
 
@@ -36,6 +46,7 @@ import Text.Regex.Applicative (RE, psym, many, (=~))
 -- [Section: Types]
 -- ~~~~~~~~~~~~~~~~
 
+-- | '(' or ')'
 data Paren
   = Open  !Point
   | Close !Point
@@ -49,6 +60,16 @@ data CharLoc = CharLoc
   { _charLocPoint :: !Point
   , _charLocChar  :: !Char
   }
+
+data RainbowColours
+  = Red
+  | Orange
+  | Yellow
+  | Green
+  | Blue
+  | Indigo
+  | Violet
+  deriving (Enum)
 
 ------------------------------------------------------------------
 
@@ -92,12 +113,18 @@ tokenPoint (Close p) = p
 styleForLevel :: Level -> StyleName
 styleForLevel (Level !l) = colours !! (l `rem` length colours)
   where
-    colours =
-      [ importStyle
-      , stringStyle
-      , numberStyle
-      , dataConstructorStyle
-      ]
+    colours :: [UIStyle -> Style]
+    colours = map (\ !c _ -> withFg (colourToColor c)) [Red .. Violet]
+
+colourToColor :: RainbowColours -> Color
+colourToColor = \case
+  Red    -> RGB 255 0 0
+  Orange -> RGB 255 127 0
+  Yellow -> RGB 255 255 0
+  Green  -> RGB 0 255 0
+  Blue   -> RGB 0 0 255
+  Indigo -> RGB 75 0 130
+  Violet -> RGB 148 0 211
 
 ------------------------------------------------------------------
 
@@ -133,3 +160,28 @@ assignLevels = RainbowStorage . go [] 0
       go ((Rainbow t level) : acc) (level + 1) tokens
     go acc !level (t@(Close _) : tokens) =
       go ((Rainbow t (level - 1)) : acc) (level - 1) tokens
+
+{-
+data SnocList where
+  Nil  :: SnocList
+  Cons :: SnocList -> Rainbow -> SnocList
+
+snocToList :: SnocList -> [Rainbow]
+snocToList Nil = []
+snocToList (Cons xs x) = (snocToList xs) ++ [x]
+
+(+++) :: SnocList -> Rainbow -> SnocList
+(+++) = Cons
+
+assignLevels' :: [Paren] -> RainbowStorage
+assignLevels' = RainbowStorage . snocToList . go Nil 0
+  where
+    go acc !_ [] = acc
+    go acc 0 (Close p : tokens) = go (acc +++ (Rainbow (Close p) 0)) 0 tokens
+    go acc !level (t@(Open _) : tokens) =
+      go (acc +++ (Rainbow t level)) (level + 1) tokens
+    go acc !level (t@(Close _) : tokens) =
+      go (acc +++ (Rainbow t (level - 1))) (level - 1) tokens
+-}
+
+------------------------------------------------------------------
