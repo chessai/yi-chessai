@@ -1,5 +1,9 @@
-{-# LANGUAGE LambdaCase #-}
+-----------------------------------------------------------------------------
+
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+
+-----------------------------------------------------------------------------
 
 import Yi                               (Action (..), BufferM, Region, YiM)
 import Yi.Config.Default.HaskellMode    (configureHaskellMode)
@@ -19,9 +23,10 @@ import Yi.Config.Simple
     regionOfB, startActionsA, startEditor, unitParagraph, withCurrentBuffer,
     withSyntax, (?>>!), (?>>))
 
-import qualified Yi.Lexer.GitCommit as GitCommit
+import qualified Yi.Lexer.GitCommit   as GitCommit
 import qualified Yi.Modes
-import qualified Yi.Rope            as R
+import qualified Yi.Rope              as R
+import qualified Yi.RainbowParensMode
 
 import Control.Lens             ((.~))
 import Control.Monad            (unless)
@@ -31,17 +36,23 @@ import Data.Function            ((&))
 import Data.List                (intersperse)
 import Lens.Micro.Platform      ((.=))
 import System.Environment       (getArgs)
-import Process                  (run)
 
-getStuff :: IO [String]
-getStuff = getArgs >>= \case
-  [] -> pure ["."]
-  xs -> pure xs
+-----------------------------------------------------------------------------
 
-openFileActions :: [String] -> [Action]
-openFileActions files =
-  intersperse (EditorA newTabE)
-    (map (YiA . openNewFile) files)
+-- [Section: Main]
+-- ~~~~~~~~~~~~~~~
+
+main :: IO ()
+main = do
+  files <- getStuff
+  let _config = config >> startActionsA .= (openFileActions files) 
+  cfg <- execStateT (runConfigM _config) defaultConfig
+  startEditor cfg Nothing
+
+-----------------------------------------------------------------------------
+
+-- [Section: Config]
+-- ~~~~~~~~~~~~~~~~~
 
 config :: ConfigM ()
 config = do
@@ -54,15 +65,29 @@ config = do
   addMode Yi.Modes.gitCommitMode
   addMode Yi.Modes.jsonMode
   addMode Yi.Modes.whitespaceMode
+  addMode Yi.RainbowParensMode.rainbowParensMode
 
   globalBindKeys $ ctrlCh 'd' ?>> ctrlCh 'd' ?>>! delLine
 
-main :: IO ()
-main = do
-  files <- getStuff
-  let _config = config >> startActionsA .= (openFileActions files) 
-  cfg <- execStateT (runConfigM _config) defaultConfig
-  startEditor cfg Nothing
+
+-----------------------------------------------------------------------------
+
+-- [Section: Helpers]
+-- ~~~~~~~~~~~~~~~~~~
+getStuff :: IO [String]
+getStuff = getArgs >>= \case
+  [] -> pure ["."]
+  xs -> pure xs
+
+openFileActions :: [String] -> [Action]
+openFileActions files =
+  intersperse (EditorA newTabE)
+    (map (YiA . openNewFile) files)
+
+-----------------------------------------------------------------------------
+
+-- [Section: Keybindings]
+-- ~~~~~~~~~~~~~~~~~~~~~~
 
 delLine :: YiM ()
 delLine = withCurrentBuffer delLineB
@@ -74,26 +99,3 @@ delLineB = do
     r <- inclusiveRegionB =<< regionOfB Line
     lineDown
     deleteRegionB r
-
-typeOf :: String -> IO String
-typeOf decl = do
-  let ident = fst (break isSpace decl)
-
-  run "ghci"
-    [ "-v0"
-    , "-w"
-    , "-outputdir /tmp/ghcinterm"
-    , "-fno-warn-missing-signatures"
-    , "-Wno-error=missing-signatures"
-    , "-fforce-recomp"
-    , "-O0"
-    , "-fno-code"
-    , "-fbyte-code"
-    ]
-    (":t " ++ ident)
-
---infer :: BufferM ()
---infer = do
---  r :: Region <- inclusiveRegionB =<< regionOfB Line
---  lineUp
---  ty <- 

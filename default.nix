@@ -37,7 +37,6 @@ let fetchNixpkgs = import ./nix/fetchNixpkgs.nix;
         let
           cp = file: (self.callPackage (./nix/haskell + "/${file}.nix") {}); 
           build = name: path: self.callCabal2nix name (builtins.filterSource filterPredicate path) {};
-          # build' = name: path: self.callPackage name (builtins.filterSource filterPredicate path) { }; 
           build-from-json = name: str: self.callCabal2nix name str {}; 
           doMap = fn: list: pkgs.lib.listToAttrs (map fn list);
           yiMapFn = name: {
@@ -68,15 +67,15 @@ let fetchNixpkgs = import ./nix/fetchNixpkgs.nix;
   
 in rec {
   inherit overrides; 
-  yi = overrides.yi;
-  yi-core = overrides.yi-core;
-  yi-keymap-vim = overrides.yi-keymap-vim;
-  yi-language = overrides.yi-frontend-vty;
-  yi-misc-modes = overrides.yi-misc-modes;
-  yi-mode-haskell = overrides.yi-mode-haskell;
-  yi-mode-javascript = overrides.yi-mode-javascript;
-  dynamic-state = overrides.dynamic-state;
-  text-icu = overrides.text-icu;
-  yi-rope = overrides.yi-rope;
+  #yi = overrides.yi;
+  #yi-core = overrides.yi-core;
+  #yi-keymap-vim = overrides.yi-keymap-vim;
+  #yi-language = overrides.yi-frontend-vty;
+  #yi-misc-modes = overrides.yi-misc-modes;
+  #yi-mode-haskell = overrides.yi-mode-haskell;
+  #yi-mode-javascript = overrides.yi-mode-javascript;
+  #dynamic-state = overrides.dynamic-state;
+  #text-icu = overrides.text-icu;
+  #yi-rope = overrides.yi-rope;
   yi-chessai = overrides.yi-chessai;
 }
