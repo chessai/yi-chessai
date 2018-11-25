@@ -1,38 +1,32 @@
 -----------------------------------------------------------------------------
 
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# OPTIONS_GHC -Wall #-}
 
 -----------------------------------------------------------------------------
 
-import Yi                               (Action (..), BufferM, Region, YiM)
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE OverloadedStrings   #-}
+
+-----------------------------------------------------------------------------
+
 import Yi.Config.Default.HaskellMode    (configureHaskellMode)
-import Yi.Config.Default.JavaScriptMode (configureJavaScriptMode)
-import Yi.Config.Default.MiscModes      (configureMiscModes)
 import Yi.Config.Default.Vim            (configureVim)
 import Yi.Config.Default.Vty            (configureVty)
-import Yi.Config.Simple.Types           (ConfigM, runConfigM)
-import Yi.Mode.Common                   (TokenBasedMode)
-import Yi.String                        (fillText)
-import Yi.Types                         (Config)
+import Yi.Config.Simple.Types           (runConfigM)
 
 import Yi.Config.Simple
-    (TextUnit (..), addMode, atEof, atSol, ctrlCh, defaultConfig,
-    deleteRegionB, globalBindKeys, inclusiveRegionB, lineDown, metaCh,
-    modePrettify, modePrettifyA, modifyRegionB, newTabE, openNewFile,
-    regionOfB, startActionsA, startEditor, unitParagraph, withCurrentBuffer,
-    withSyntax, (?>>!), (?>>))
+  ( Config
+  , ConfigM
+  , Action(YiA,EditorA)
+  , openNewFile, defaultConfig, startActionsA, newTabE
+  , addMode
+  , startEditor
+  )
 
-import qualified Yi.Lexer.GitCommit   as GitCommit
-import qualified Yi.Modes
-import qualified Yi.Rope              as R
-import qualified Yi.RainbowParensMode
+import qualified Yi.Modes             as Modes
+import qualified Yi.RainbowParensMode as Modes
 
-import Control.Lens             ((.~))
-import Control.Monad            (unless)
 import Control.Monad.State.Lazy (execStateT)
-import Data.Char                (isSpace)
-import Data.Function            ((&))
 import Data.List                (intersperse)
 import Lens.Micro.Platform      ((.=))
 import System.Environment       (getArgs)
@@ -43,11 +37,10 @@ import System.Environment       (getArgs)
 -- ~~~~~~~~~~~~~~~
 
 main :: IO ()
-main = do
-  files <- getStuff
-  let _config = config >> startActionsA .= (openFileActions files) 
-  cfg <- execStateT (runConfigM _config) defaultConfig
-  startEditor cfg Nothing
+main = startup >>= \cfg -> startEditor cfg Nothing
+
+startup :: IO Config
+startup = getFiles >>= setup config
 
 -----------------------------------------------------------------------------
 
@@ -59,35 +52,61 @@ config = do
   configureVim
   configureVty
   configureHaskellMode
-  addMode Yi.Modes.cMode 
-  addMode Yi.Modes.cabalMode
-  addMode Yi.Modes.cppMode
-  addMode Yi.Modes.gitCommitMode
-  addMode Yi.Modes.jsonMode
-  addMode Yi.Modes.whitespaceMode
-  addMode Yi.RainbowParensMode.rainbowParensMode
+  addMode Modes.cMode 
+  addMode Modes.cabalMode
+  addMode Modes.cppMode
+  addMode Modes.gitCommitMode
+  addMode Modes.jsonMode
+  addMode Modes.whitespaceMode
+  addMode Modes.rainbowParensMode
 
-  globalBindKeys $ ctrlCh 'd' ?>> ctrlCh 'd' ?>>! delLine
+{-
+configIndent :: AnyMode -> AnyMode
+configIndent = onMode $ \m ->
+  if m ^. modeNameA == "Makefile"
+  then m
+  else m
+    { modeIndentSettings  = IndentSettings
+        { expandTabs = True
+        , shiftWidth = 2
+        , tabSize    = 2
+        }
+    }
 
+modes :: [AnyMode]
+modes = AnyMode <$>
+  [ Yi.Modes.cMode
+  , Yi.Modes.cabalMode
+  , Yi.Modes.cppMode
+  , Yi.Modes.gitCommitMode
+  , Yi.Modes.jsonMode
+  , Yi.Modes.whitespaceMode
+  ]
+-}
 
 -----------------------------------------------------------------------------
 
 -- [Section: Helpers]
 -- ~~~~~~~~~~~~~~~~~~
-getStuff :: IO [String]
-getStuff = getArgs >>= \case
-  [] -> pure ["."]
-  xs -> pure xs
+
+getFiles :: IO [String]
+getFiles = getArgs >>= \case { [] -> pure ["."]; xs -> pure xs }
 
 openFileActions :: [String] -> [Action]
-openFileActions files =
-  intersperse (EditorA newTabE)
-    (map (YiA . openNewFile) files)
+openFileActions files = intersperse (EditorA newTabE) (map (YiA . openNewFile) files)
+
+setup :: ConfigM () -> [String] -> IO Config
+setup configM files = do
+  let _config = configM >> startActionsA .= openFileActions files
+  execStateT (runConfigM _config) defaultConfig
 
 -----------------------------------------------------------------------------
 
 -- [Section: Keybindings]
 -- ~~~~~~~~~~~~~~~~~~~~~~
+{-
+-- this has been added to upstream. good!
+-- globalBindKeys $ ctrlCh 'd' ?>> ctrlCh 'd' ?>>! delLine :: ConfigM ()
 
 delLine :: YiM ()
 delLine = withCurrentBuffer delLineB
@@ -99,3 +118,16 @@ delLineB = do
     r <- inclusiveRegionB =<< regionOfB Line
     lineDown
     deleteRegionB r
+-}
+
+-----------------------------------------------------------------------------
+
+
+{-
+colemakRelayout :: Char -> Char
+colemakRelayout = relayoutFromTo colemakLayout qwertyLayout
+  where
+    colemakLayout = concat ["qwfpgjluy;[]", "arstdhneio'\\", "zxcvbkm,./"]
+    qwertyLayout  = concat ["qwertyuiop[]", "asdfghjkl;'\\", "zxcvbnm,./"]
+-}
+
