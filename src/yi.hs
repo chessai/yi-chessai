@@ -60,30 +60,6 @@ config = do
   addMode Modes.whitespaceMode
   addMode Modes.rainbowParensMode
 
-{-
-configIndent :: AnyMode -> AnyMode
-configIndent = onMode $ \m ->
-  if m ^. modeNameA == "Makefile"
-  then m
-  else m
-    { modeIndentSettings  = IndentSettings
-        { expandTabs = True
-        , shiftWidth = 2
-        , tabSize    = 2
-        }
-    }
-
-modes :: [AnyMode]
-modes = AnyMode <$>
-  [ Yi.Modes.cMode
-  , Yi.Modes.cabalMode
-  , Yi.Modes.cppMode
-  , Yi.Modes.gitCommitMode
-  , Yi.Modes.jsonMode
-  , Yi.Modes.whitespaceMode
-  ]
--}
-
 -----------------------------------------------------------------------------
 
 -- [Section: Helpers]
@@ -101,33 +77,3 @@ setup configM files = do
   execStateT (runConfigM _config) defaultConfig
 
 -----------------------------------------------------------------------------
-
--- [Section: Keybindings]
--- ~~~~~~~~~~~~~~~~~~~~~~
-{-
--- this has been added to upstream. good!
--- globalBindKeys $ ctrlCh 'd' ?>> ctrlCh 'd' ?>>! delLine :: ConfigM ()
-
-delLine :: YiM ()
-delLine = withCurrentBuffer delLineB
-
-delLineB :: BufferM ()
-delLineB = do
-  e <- (&&) <$> atEof <*> atSol
-  unless e $ do
-    r <- inclusiveRegionB =<< regionOfB Line
-    lineDown
-    deleteRegionB r
--}
-
------------------------------------------------------------------------------
-
-
-{-
-colemakRelayout :: Char -> Char
-colemakRelayout = relayoutFromTo colemakLayout qwertyLayout
-  where
-    colemakLayout = concat ["qwfpgjluy;[]", "arstdhneio'\\", "zxcvbkm,./"]
-    qwertyLayout  = concat ["qwertyuiop[]", "asdfghjkl;'\\", "zxcvbnm,./"]
--}
-
