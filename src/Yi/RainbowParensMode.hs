@@ -20,7 +20,7 @@ module Yi.RainbowParensMode
 ------------------------------------------------------------------
 
 import Data.Foldable (asum)
-import Data.Maybe (catMaybes, fromMaybe)
+import Data.Maybe    (catMaybes, fromMaybe)
 
 import Yi
   ( Mode(modeName, modeHL, modeGetStrokes)
@@ -121,13 +121,13 @@ styleForLevel (Level !l) = colours !! (l `rem` length colours)
 
 colourToColor :: RainbowColours -> Color
 colourToColor = \case
-  Red    -> RGB 255 0 0
-  Orange -> RGB 255 127 0
-  Yellow -> RGB 255 255 0
-  Green  -> RGB 0 255 0
-  Blue   -> RGB 0 0 255
-  Indigo -> RGB 75 0 130
-  Violet -> RGB 148 0 211
+  Red    -> RGB 255   0   0
+  Orange -> RGB 255 127   0
+  Yellow -> RGB 255 255   0
+  Green  -> RGB   0 255   0
+  Blue   -> RGB   0   0 255
+  Indigo -> RGB  75   0 130
+  Violet -> RGB 148   0 211
 
 ------------------------------------------------------------------
 
@@ -163,28 +163,5 @@ assignLevels = RainbowStorage . go [] 0
       go ((Rainbow t level) : acc) (level + 1) tokens
     go acc !level (t@(Close _) : tokens) =
       go ((Rainbow t (level - 1)) : acc) (level - 1) tokens
-
-{-
-data SnocList where
-  Nil  :: SnocList
-  Cons :: SnocList -> Rainbow -> SnocList
-
-snocToList :: SnocList -> [Rainbow]
-snocToList Nil = []
-snocToList (Cons xs x) = (snocToList xs) ++ [x]
-
-(+++) :: SnocList -> Rainbow -> SnocList
-(+++) = Cons
-
-assignLevels' :: [Paren] -> RainbowStorage
-assignLevels' = RainbowStorage . snocToList . go Nil 0
-  where
-    go acc !_ [] = acc
-    go acc 0 (Close p : tokens) = go (acc +++ (Rainbow (Close p) 0)) 0 tokens
-    go acc !level (t@(Open _) : tokens) =
-      go (acc +++ (Rainbow t level)) (level + 1) tokens
-    go acc !level (t@(Close _) : tokens) =
-      go (acc +++ (Rainbow t (level - 1))) (level - 1) tokens
--}
 
 ------------------------------------------------------------------
